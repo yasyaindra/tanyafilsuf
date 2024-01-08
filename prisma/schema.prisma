@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model Category {
+  id      String @id @default(uuid())
+  name    String
+  philosophers Philosopher[]
+}
+
+model Philosopher {
+  id         String @id @default(uuid())
+  userId     String
+  username   String
+  src        String
+  name       String @db.Text
+  description String
+  instructions String @db.Text
+  seed      String @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String
+
+  messages    Message[]
+
+  @@index([categoryId])
+  @@fulltext([name])
+}
+
+enum Role {
+  user
+  system
+}
+
+model Message {
+  id            String @id @default(uuid())
+  role          Role
+  content       String @db.Text
+  createdAt     DateTime @default(now())
+  updateAt      DateTime @updatedAt
+  philosopherId   String
+  userId          String
+
+  philosopher Philosopher @relation(fields: [philosopherId], references: [id], onDelete: Cascade)
+
+  @@index([philosopherId])
+}
